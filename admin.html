@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Manage Movies & Series</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared-navbar.css">
+  <script src="shared-navbar.js" defer></script>
+  <script src="card-search.js" defer></script>
+  <script src="performance-utils.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="auth.js" defer></script>
+
+  <style>
+    body { font-family:'Electrolize',sans-serif; background:#000; color:#fff; margin:0; }
+    h2 { color:#f00; margin-top:30px; text-align:center; }
+    .grid {
+      display:flex;
+      flex-direction:column;
+      gap:48px;
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px 16px 56px;
+    }
+    .grid > section {
+      background:#141414;
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 10px 28px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.04);
+    }
+
+    .form-box {
+      width:100%; max-width:560px; margin:0; padding:20px; background:#111; border-radius:12px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .form-box small { color:#bbb; line-height:1.2; }
+    input, select, textarea {
+      padding:10px; border:0; border-radius:5px; background:#222; color:#fff;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    button {
+      padding:12px; border:0; background:#f00; border-radius:6px;
+      font-weight:700; cursor:pointer; color:#fff;
+    }
+    button:hover { background:#c20000; }
+
+    .list-wrap { padding:0; margin-top:22px; }
+    .card-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:22px;
+      max-height:460px;
+      overflow-y:auto;
+      overflow-x:hidden;
+      align-content:start;
+      padding-right:6px;
+    }
+    .movie-card, .series-card { width:100%; background:#111; border-radius:8px; overflow:hidden; text-align:center; }
+    .movie-card img, .series-card img { width:100%; height:250px; object-fit:cover; display:block; }
+    .movie-card h4, .series-card h4 { margin:10px 8px; min-height:48px; }
+    .hero-card { width:100%; background:#111; border-radius:8px; overflow:hidden; text-align:center; }
+    .hero-card img { width:100%; height:140px; object-fit:cover; display:block; }
+    .hero-card h4 { margin:10px 8px 4px; }
+    .hero-card p { margin:0 8px 10px; color:#c9c9c9; font-size:12px; min-height:40px; }
+    .delete-btn {
+      background:#222; border:1px solid #f00; color:#f00;
+      padding:6px 10px; border-radius:5px; cursor:pointer; margin-bottom:10px;
+    }
+    .delete-btn:hover { background:#f00; color:#fff; }
+
+    @media (max-width: 640px) {
+      .grid { gap:32px; padding:16px 10px 44px; }
+      .grid > section { padding:16px; }
+      .card-grid { grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); max-height:420px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="navbar">
+  <div class="navbar-wrapper">
+    <div class="logo-wrapper">
+      <h1 class="logo">Cinemaverse</h1>
+    </div>
+    <div class="menu-container">
+      <ul class="menu-list">
+        <li class="menu-list-item"><a href="index.html">Home</a></li>
+        <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+        <li class="menu-list-item"><a href="series.html">Series</a></li>
+        <li class="menu-list-item"><a href="watchlist.html">Watchlist</a></li>
+        <li class="menu-list-item"><a href="gallery.html">Gallery</a></li>
+        <li class="menu-list-item"><a href="contact.html">Contact Us</a></li>
+        <li class="menu-list-item"><a href="about.html">About Us</a></li>
+      </ul>
+    </div>
+    <div class="profile-container">
+      <a href="login.html" class="auth-button login-button">Login</a>
+      <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- ===================== MOVIES ===================== -->
+  <section>
+    <h2>Add New Movie</h2>
+    <div class="form-box">
+      <input id="m-title" type="text" placeholder="Movie Title">
+      <input id="m-poster" type="text" placeholder="Poster Image URL">
+      <select id="m-category" title="Category">
+        <option value="Top">Top</option>
+        <option value="Latest">Latest</option>
+        <option value="TopRated">TopRated</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Horror">Horror</option>
+        <option value="Sports">Sports</option>
+      </select>
+      <button onclick="addMovie()">Add Movie</button>
+      <small>Movies table: <code>movies(title, poster_url, category, created_at)</code></small>
+    </div>
+
+    <div class="list-wrap">
+      <h2>Delete Movies</h2>
+      <div id="movie-list" class="card-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== INDEX MOVIES (HOME) ===================== -->
+  <section>
+    <h2>Add Index Page Movie</h2>
+    <div class="form-box">
+      <input id="im-title" type="text" placeholder="Index Movie Title">
+      <input id="im-poster" type="text" placeholder="Poster Image URL">
+      <select id="im-category" title="Category">
+        <option value="Top">Top</option>
+        <option value="Latest">Latest</option>
+        <option value="TopRated">TopRated</option>
+      </select>
+      <button onclick="addIndexMovie()">Add Index Movie</button>
+      <small>Index table: <code>index_movies(title, poster_url, category, created_at)</code></small>
+    </div>
+
+    <div class="list-wrap">
+      <h2>Delete Index Movies</h2>
+      <div id="index-movie-list" class="card-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SERIES ===================== -->
+  <section>
+    <h2>Add New Series</h2>
+    <div class="form-box">
+      <input id="s-title" type="text" placeholder="Series Title">
+      <input id="s-poster" type="text" placeholder="Poster Image URL">
+      <select id="s-category" title="Category">
+        <!-- Match series.html sections exactly -->
+        <option value="Popular">Popular</option>
+        <option value="Seinen">Seinen</option>
+        <option value="Latest">Latest</option>
+        <option value="TopRated">TopRated</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Action">Action</option>
+        <option value="Sports">Sports</option>
+      </select>
+      <!-- Optional meta if you want (safe to leave blank) -->
+      <input id="s-genre" type="text" placeholder="Genre (optional)">
+      <textarea id="s-description" placeholder="Description (optional)"></textarea>
+
+      <button onclick="addSeries()">Add Series</button>
+      <small>Series table: <code>series(title, poster_url, category, description, genre, created_at)</code></small>
+    </div>
+
+    <div class="list-wrap">
+      <h2>Delete Series</h2>
+      <div id="series-list" class="card-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== HERO SLIDES ===================== -->
+  <section>
+    <h2>Add Hero Slide</h2>
+    <div class="form-box">
+      <input id="h-title" type="text" placeholder="Hero Title">
+      <input id="h-image" type="text" placeholder="Banner Image URL (16:9)">
+      <textarea id="h-description" placeholder="Hero Description"></textarea>
+      <button onclick="addHero()">Add Hero Slide</button>
+      <button onclick="resetHeroSlides()" style="background:#222;border:1px solid #f00;color:#f00;">Reset Hero Data</button>
+      <small>Hero table: <code>hero_slides(title, image_url, description, created_at)</code></small>
+    </div>
+
+    <div class="list-wrap">
+      <h2>Delete Hero Slides</h2>
+      <div id="hero-list" class="card-grid"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const ADMIN_EMAIL = "akhilb490@gmail.com";
+  const CACHE_PREFIX = "cinemaverse_cache::";
+  const CACHE_SIGNAL_KEY = "cinemaverse_cache_signal";
+  const CACHE_KEYS = {
+    movies: "movies:rows",
+    indexMovies: "index:index_movies",
+    series: "series:rows"
+  };
+
+  function invalidateCachesAndNotify(keys, reason) {
+    const list = Array.isArray(keys) ? keys : [keys];
+
+    if (window.cinemaversePerf && typeof window.cinemaversePerf.invalidateCaches === 'function') {
+      window.cinemaversePerf.invalidateCaches(list);
+      if (typeof window.cinemaversePerf.emitCacheSignal === 'function') {
+        window.cinemaversePerf.emitCacheSignal({ keys: list, reason: reason || 'admin-update' });
+        return;
+      }
+    }
+
+    list.filter(Boolean).forEach((key) => {
+      try { localStorage.removeItem(`${CACHE_PREFIX}${key}`); } catch (_) {}
+    });
+
+    try {
+      localStorage.setItem(CACHE_SIGNAL_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        keys: list,
+        reason: reason || 'admin-update'
+      }));
+    } catch (_) {}
+  }
+
+  function normalizeMovieCategory(value) {
+    const normalized = (value || '').toString().trim().toLowerCase();
+    if (normalized === 'top') return 'Top';
+    if (normalized === 'latest') return 'Latest';
+    if (normalized === 'toprated' || normalized === 'top-rated' || normalized === 'top rated') return 'TopRated';
+    if (normalized === 'comedy') return 'Comedy';
+    if (normalized === 'horror') return 'Horror';
+    if (normalized === 'sports') return 'Sports';
+    return value;
+  }
+
+  function normalizeSeriesCategory(value) {
+    const normalized = (value || '').toString().trim().toLowerCase();
+    if (normalized === 'popular') return 'Popular';
+    if (normalized === 'seinen') return 'Seinen';
+    if (normalized === 'latest') return 'Latest';
+    if (normalized === 'toprated' || normalized === 'top-rated' || normalized === 'top rated') return 'TopRated';
+    if (normalized === 'comedy') return 'Comedy';
+    if (normalized === 'action') return 'Action';
+    if (normalized === 'sports') return 'Sports';
+    return value;
+  }
+
+  async function getClient() {
+    return window.supabaseClient || (typeof window.ensureSupabaseClient === 'function' ? await window.ensureSupabaseClient() : null);
+  }
+
+  async function enforceAdminAccess() {
+    const client = await getClient();
+    if (!client) {
+      window.location.href = "login.html";
+      return null;
+    }
+
+    const { data: { user }, error } = await client.auth.getUser();
+    if (error || !user) {
+      window.location.href = "login.html";
+      return null;
+    }
+
+    if ((user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      alert("Access denied. Admin only.");
+      window.location.href = "index.html";
+      return null;
+    }
+
+    return client;
+  }
+
+  // ---------- MOVIES ----------
+  async function loadMovies() {
+    const client = await getClient();
+    if (!client) return;
+
+    const { data, error } = await client
+      .from("movies")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if (error) { console.log(error.message); return; }
+
+    const list = document.getElementById("movie-list");
+    list.innerHTML = "";
+
+    (data || []).forEach(m => {
+      const card = document.createElement("div");
+      card.className = "movie-card";
+      card.innerHTML = `
+        <img src="${m.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'}" alt="">
+        <h4>${m.title}</h4>
+        <button class="delete-btn" onclick="deleteMovie(${m.id})">Delete</button>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  async function addMovie() {
+    const title = document.getElementById("m-title").value.trim();
+    const poster = document.getElementById("m-poster").value.trim();
+    const category = normalizeMovieCategory(document.getElementById("m-category").value);
+
+    if (!title) return alert("Enter title");
+
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client
+      .from("movies")
+      .insert({ title, poster_url: poster, category, created_at: new Date().toISOString() });
+
+    if (error) return alert(error.message);
+    alert("Movie Added ✅");
+    invalidateCachesAndNotify(CACHE_KEYS.movies, 'movie-added');
+    document.getElementById("m-title").value = "";
+    document.getElementById("m-poster").value = "";
+    document.getElementById("m-category").value = "Top";
+    loadMovies();
+  }
+
+  async function deleteMovie(id) {
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client.from("movies").delete().eq("id", id);
+    if (error) return alert(error.message);
+    alert("Movie Deleted ❌");
+    invalidateCachesAndNotify(CACHE_KEYS.movies, 'movie-deleted');
+    loadMovies();
+  }
+
+  // ---------- INDEX MOVIES (HOME PAGE) ----------
+  async function loadIndexMovies() {
+    const client = await getClient();
+    if (!client) return;
+
+    const { data, error } = await client
+      .from("index_movies")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if (error) { console.log(error.message); return; }
+
+    const list = document.getElementById("index-movie-list");
+    if (!list) return;
+    list.innerHTML = "";
+
+    (data || []).forEach(m => {
+      const card = document.createElement("div");
+      card.className = "movie-card";
+      card.innerHTML = `
+        <img src="${m.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'}" alt="">
+        <h4>${m.title}</h4>
+        <button class="delete-btn" onclick="deleteIndexMovie(${m.id})">Delete</button>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  async function addIndexMovie() {
+    const title = document.getElementById("im-title").value.trim();
+    const poster = document.getElementById("im-poster").value.trim();
+    const category = normalizeMovieCategory(document.getElementById("im-category").value);
+
+    if (!title) return alert("Enter title");
+
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client
+      .from("index_movies")
+      .insert({ title, poster_url: poster, category, created_at: new Date().toISOString() });
+
+    if (error) return alert(error.message);
+    alert("Index Movie Added ✅");
+    invalidateCachesAndNotify(CACHE_KEYS.indexMovies, 'index-movie-added');
+    document.getElementById("im-title").value = "";
+    document.getElementById("im-poster").value = "";
+    document.getElementById("im-category").value = "Top";
+    loadIndexMovies();
+  }
+
+  async function deleteIndexMovie(id) {
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client.from("index_movies").delete().eq("id", id);
+    if (error) return alert(error.message);
+    alert("Index Movie Deleted ❌");
+    invalidateCachesAndNotify(CACHE_KEYS.indexMovies, 'index-movie-deleted');
+    loadIndexMovies();
+  }
+
+  // ---------- SERIES ----------
+  async function loadSeries() {
+    const client = await getClient();
+    if (!client) return;
+
+    const { data, error } = await client
+      .from("series")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if (error) { console.log(error.message); return; }
+
+    const list = document.getElementById("series-list");
+    list.innerHTML = "";
+
+    (data || []).forEach(s => {
+      const card = document.createElement("div");
+      card.className = "series-card";
+      card.innerHTML = `
+        <img src="${s.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'}" alt="">
+        <h4>${s.title}</h4>
+        <button class="delete-btn" onclick="deleteSeries(${s.id})">Delete</button>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  async function addSeries() {
+    const title = document.getElementById("s-title").value.trim();
+    const poster = document.getElementById("s-poster").value.trim();
+    const category = normalizeSeriesCategory(document.getElementById("s-category").value);
+    const description = document.getElementById("s-description").value.trim();
+    const genre = document.getElementById("s-genre").value.trim();
+
+    if (!title) return alert("Enter title");
+
+    const payload = { title, poster_url: poster, category, created_at: new Date().toISOString() };
+    if (description) payload.description = description;
+    if (genre) payload.genre = genre;
+
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client.from("series").insert(payload);
+    if (error) return alert(error.message);
+
+    alert("Series Added ✅");
+    invalidateCachesAndNotify(CACHE_KEYS.series, 'series-added');
+    document.getElementById("s-title").value = "";
+    document.getElementById("s-poster").value = "";
+    document.getElementById("s-category").value = "Popular";
+    document.getElementById("s-description").value = "";
+    document.getElementById("s-genre").value = "";
+    loadSeries();
+  }
+
+  async function deleteSeries(id) {
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client.from("series").delete().eq("id", id);
+    if (error) return alert(error.message);
+    alert("Series Deleted ❌");
+    invalidateCachesAndNotify(CACHE_KEYS.series, 'series-deleted');
+    loadSeries();
+  }
+
+  // ---------- HERO SLIDES ----------
+  async function loadHero() {
+    const client = await getClient();
+    if (!client) return;
+
+    const { data, error } = await client
+      .from("hero_slides")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.log(error.message);
+      return;
+    }
+
+    const list = document.getElementById("hero-list");
+    list.innerHTML = "";
+
+    (data || []).forEach(h => {
+      const card = document.createElement("div");
+      card.className = "hero-card";
+      card.innerHTML = `
+        <img src="${h.image_url || 'https://via.placeholder.com/640x360?text=No+Banner'}" alt="">
+        <h4>${h.title || 'Untitled'}</h4>
+        <p>${h.description || ''}</p>
+        <button class="delete-btn" onclick="deleteHero(${h.id})">Delete</button>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  async function addHero() {
+    const title = document.getElementById("h-title").value.trim();
+    const imageUrl = document.getElementById("h-image").value.trim();
+    const description = document.getElementById("h-description").value.trim();
+
+    if (!title || !imageUrl) return alert("Enter title and image URL");
+
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client
+      .from("hero_slides")
+      .insert({ title, image_url: imageUrl, description });
+
+    if (error) return alert(error.message);
+
+    alert("Hero Slide Added ✅");
+    document.getElementById("h-title").value = "";
+    document.getElementById("h-image").value = "";
+    document.getElementById("h-description").value = "";
+    loadHero();
+  }
+
+  async function deleteHero(id) {
+    const client = await getClient();
+    if (!client) return;
+
+    const { error } = await client.from("hero_slides").delete().eq("id", id);
+    if (error) return alert(error.message);
+
+    alert("Hero Slide Deleted ❌");
+    loadHero();
+  }
+
+  async function resetHeroSlides() {
+    if (!confirm('Reset hero_slides with default curated data?')) return;
+
+    const client = await getClient();
+    if (!client) return;
+
+    const seedData = [
+      {
+        title: 'Breaking Bad',
+        image_url: 'https://wallpapercat.com/w/middle-retina/e/4/6/22861-1920x1080-desktop-1080p-breaking-bad-wallpaper.jpg',
+        description: 'A high school chemistry teacher turns into a ruthless drug kingpin.'
+      },
+      {
+        title: 'One Piece',
+        image_url: 'https://wallpaperswide.com/download/one_piece_2-wallpaper-1920x1080.jpg',
+        description: 'Monkey D. Luffy sets sail to become the Pirate King with his crew.'
+      },
+      {
+        title: 'Interstellar',
+        image_url: 'https://wallpapercave.com/wp/wp15283939.jpg',
+        description: 'A team of explorers travels through a wormhole in space to save humanity.'
+      },
+      {
+        title: 'Jujutsu Kaisen',
+        image_url: 'https://sportshub.cbsistatic.com/i/2023/08/24/86b3f35e-3dc6-4b06-accc-0cd352d4d5b2/screen-shot-2023-08-24-at-12-57-21-pm.png',
+        description: 'A student joins a secret organization to fight cursed spirits.'
+      },
+      {
+        title: 'Chainsaw Man',
+        image_url: 'https://a-static.besthdwallpaper.com/chainsaw-man-denji-chainsaw-wallpaper-1920x1080-79216_48.jpg',
+        description: 'A devil hunter gains terrifying powers and battles deadly demons.'
+      },
+      {
+        title: 'Better Call Saul',
+        image_url: 'https://wallpapercat.com/w/full/0/3/f/214339-1920x1080-desktop-full-hd-better-call-saul-background.jpg',
+        description: 'The story of Jimmy McGill becoming Saul Goodman.'
+      }
+    ];
+
+    const { error: delError } = await client.from('hero_slides').delete().gt('id', 0);
+    if (delError) return alert(delError.message);
+
+    const { error: insError } = await client.from('hero_slides').insert(seedData);
+    if (insError) return alert(insError.message);
+
+    alert('Hero data reset complete ✅');
+    loadHero();
+  }
+
+  // ---------- AUTH GATE & INITIAL LOAD ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    const client = await enforceAdminAccess();
+    if (!client) return;
+
+    if (typeof updateAuthUI === 'function') {
+      updateAuthUI();
+    }
+    loadMovies();
+    loadIndexMovies();
+    loadSeries();
+    loadHero();
+  });
+</script>
+
+</body>
+</html>

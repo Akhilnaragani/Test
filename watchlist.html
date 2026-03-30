@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Watchlist - Cinemaverse</title>
+  <style id="auth-preload-style">body{display:none!important;}</style>
+  <script>
+    window.__CINEMAVERSE_PROTECT_PAGE__ = true;
+    window.__CINEMAVERSE_UNHIDE_BODY__ = function () {
+      const preloadStyle = document.getElementById('auth-preload-style');
+      if (preloadStyle) preloadStyle.remove();
+      if (document.body) document.body.style.display = '';
+    };
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="performance-utils.js" defer></script>
+  <script src="auth.js" defer></script>
+
+  <!-- Unified watchlist API -->
+  <script src="watchlist-api.js" defer></script>
+  <link rel="stylesheet" href="shared-cards.css">
+
+  <style>
+    html, body { overflow-x:hidden; max-width:100%; }
+    body { font-family: 'Electrolize', sans-serif; background:#000; color:#fff; margin:0; }
+
+    .page { padding: 20px; }
+    h2 { color:#f00; margin: 20px 0; }
+
+    .movies-list {
+      display:flex; gap:15px; flex-wrap:wrap;
+      padding-bottom:10px;
+    }
+
+    .empty {
+      color:#bbb; background:#111; border:1px dashed #333; border-radius:10px;
+      padding:30px; text-align:center; margin:20px 0;
+    }
+  </style>
+  <link rel="stylesheet" href="shared-navbar.css">
+  <script src="shared-navbar.js" defer></script>
+  <script src="card-search.js" defer></script>
+</head>
+<body>
+
+  <!-- Auth helpers -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof updateAuthUI === 'function') {
+        await updateAuthUI();
+      }
+    });
+  </script>
+
+  <!-- Nav -->
+  <div class="navbar">
+    <div class="navbar-wrapper">
+      <div class="logo-wrapper">
+        <h1 class="logo">Cinemaverse</h1>
+      </div>
+      <div class="menu-container">
+        <ul class="menu-list">
+          <li class="menu-list-item"><a href="index.html">Home</a></li>
+          <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+          <li class="menu-list-item"><a href="series.html">Series</a></li>
+          <li class="menu-list-item active"><a href="watchlist.html">Watchlist</a></li>
+          <li class="menu-list-item"><a href="gallery.html">Gallery</a></li>
+          <li class="menu-list-item"><a href="contact.html">Contact Us</a></li>
+          <li class="menu-list-item"><a href="about.html">About Us</a></li>
+        </ul>
+      </div>
+      <div class="profile-container">
+        <a href="login.html" class="auth-button login-button">Login</a>
+        <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="page">
+    <h2>Your Watchlist</h2>
+    <div id="watchlist" class="movies-list"></div>
+    <div id="empty-state" class="empty" style="display:none;">
+      Your watchlist is empty. Go to <a href="movies.html" style="color:#f00;">Movies</a> and add something!
+    </div>
+  </main>
+
+  <script>
+    async function getClient() {
+      return window.supabaseClient || (typeof window.ensureSupabaseClient === 'function' ? await window.ensureSupabaseClient() : null);
+    }
+
+    // Use the unified watchlist API to handle loading/rendering
+    async function _renderOnce() {
+      if (typeof window.renderWatchlist === 'function') {
+        window.renderWatchlist('watchlist', 'empty-state');
+      } else {
+        setTimeout(_renderOnce, 50); // retry if API not loaded yet
+      }
+    }
+    _renderOnce();
+
+    window.addEventListener('watchlist:changed', () => {
+      if (typeof window.renderWatchlist === 'function') {
+        window.renderWatchlist('watchlist', 'empty-state');
+      }
+    });
+
+    // Re-render on auth changes
+    (async () => {
+      const client = await getClient();
+      if (!client) return;
+
+      client.auth.onAuthStateChange(() => {
+        updateAuthUI();
+        if (typeof window.renderWatchlist === 'function') {
+          window.renderWatchlist('watchlist', 'empty-state');
+        } else {
+          setTimeout(() => window.renderWatchlist && window.renderWatchlist('watchlist', 'empty-state'), 100);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

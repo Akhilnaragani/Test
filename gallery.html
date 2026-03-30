@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+  <meta charset=UTF-8>
+  <meta name=viewport content="width=device-width, initial-scale=1.0">
+  <title>Cinemaverse - Gallery</title>
+  <style id="auth-preload-style">body{display:none!important;}</style>
+  <script>
+    window.__CINEMAVERSE_PROTECT_PAGE__ = true;
+    window.__CINEMAVERSE_UNHIDE_BODY__ = function () {
+      const preloadStyle = document.getElementById('auth-preload-style');
+      if (preloadStyle) preloadStyle.remove();
+      if (document.body) document.body.style.display = '';
+    };
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'Electrolize', sans-serif;
+      background-color: black;
+      color: white;
+      margin: 0;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(to bottom, rgba(255, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+      color: #fff
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 30px
+    }
+
+    .hero p {
+      font-size: 20px;
+      margin-top: 0
+    }
+
+    .gallery-section {
+      padding: 40px 20px;
+      background-color: #222
+    }
+
+    .gallery-section h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+      color: #f00
+    }
+
+    .gallery-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px
+    }
+
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.5)
+    }
+
+    .gallery-item img,
+    .gallery-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .3s ease-in-out
+    }
+
+    .gallery-item:hover img,
+    .gallery-item:hover video {
+      transform: scale(1.1)
+    }
+
+    .play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 40px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .3s
+    }
+
+    .gallery-item:hover .play-btn {
+      opacity: 1
+    }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      overflow: hidden;
+      border-radius: 10px
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0
+    }
+
+    .footer {
+      background-color: black;
+      color: red;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold
+    }
+  </style>
+  <link rel="stylesheet" href="shared-navbar.css">
+  <script src="shared-navbar.js" defer></script>
+  <script src="card-search.js" defer></script>
+  <script src="performance-utils.js" defer></script>
+  <script src="auth.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof checkAuth !== 'function') return;
+      const result = await checkAuth();
+      if (result && typeof updateAuthUI === 'function') {
+        updateAuthUI();
+      }
+    });
+  </script>
+
+  <div class="navbar">
+    <div class="navbar-wrapper">
+      <div class="logo-wrapper">
+        <h1 class="logo">Cinemaverse</h1>
+      </div>
+      <div class="menu-container">
+        <ul class="menu-list">
+          <li class="menu-list-item"><a href="index.html">Home</a></li>
+          <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+          <li class="menu-list-item"><a href="series.html">Series</a></li>
+          <li class="menu-list-item"><a href="watchlist.html">Watchlist</a></li>
+          <li class="menu-list-item active"><a href="gallery.html">Gallery</a></li>
+          <li class="menu-list-item"><a href="contact.html">Contact Us</a></li>
+          <li class="menu-list-item"><a href="about.html">About Us</a></li>
+        </ul>
+      </div>
+      <div class="profile-container">
+        <a href="login.html" class="auth-button login-button">Login</a>
+        <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class=hero>
+    <h1>Explore Cinemaverse Gallery</h1>
+    <p>Discover the magic of cinema through our collection of photos and videos.</p>
+  </div>
+  <div class=gallery-section>
+    <h2>Featured Gallery</h2>
+    <div class=gallery-container id=gallery-container>
+    </div>
+  </div>
+  <script>const galleryData = [{ type: "image", src: "https://w0.peakpx.com/wallpaper/294/735/HD-wallpaper-deadpool-and-wolverine-in-a-city-ablaze-deadpool-3-deadpool-wolverine-2024-movies-movies-hugh-jackman-superheroes-artist-artwork-digital-art-artstation.jpg", alt: "Image 1" }, { type: "video", src: "https://www.youtube.com/embed/73_1biulkYk?si=d0BiXTsoHG44Gahy", alt: "Video 1" }, { type: "image", src: "https://th.bing.com/th/id/R.1eeae96e2151dd787808e22f1386c3e0?rik=TlXbwWlR0ZEZmw&riu=http%3a%2f%2f2.bp.blogspot.com%2f-ZRyQgMJegJc%2fWqwNSzvUk2I%2fAAAAAAAADIs%2fqxNt9wqA2UUWoM6P_BZr1JxfN3-H9rVtwCK4BGAYYCw%2fs1600%2fAvengers-Infinity-WarWallpaperPoster.png&ehk=0fLGBFEmNgBVQcQQdK5htEOiv2oXaX0ZtoDloDAH%2blI%3d&risl=1&pid=ImgRaw&r=0", alt: "Image 2" }, { type: "image", src: "https://images.hdqwalls.com/download/poster-avengers-endgame-ni-1920x1080.jpg", alt: "Image 3" }, { type: "video", src: "https://www.youtube.com/embed/TcMBFSGVi1c?si=hMIm3CZ0SMKVXB8n", alt: "Video 2" }, { type: "image", src: "https://image.tmdb.org/t/p/original/3V4kLQg0kSqPLctI5ziYWabAZYF.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/__2bjWbetsA?si=ALplV0V3gSJmxATo", alt: "Video 3" }, { type: "image", src: "https://th.bing.com/th/id/R.c2a8419f74568c036f7eed7ae536b101?rik=ZwUEt3cXSMLosQ&riu=http%3a%2f%2fwallpapercave.com%2fwp%2fwp1818196.jpg&ehk=Hu65%2f5cdvKqgcgJI6eWHRQblrCiKNjLXKOYMGNY6YJg%3d&risl=&pid=ImgRaw&r=0", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/60h6lpnSgck?si=VNB0N7M-p5Fzrvrp", alt: "Video 4" }, { type: "image", src: "https://i.ytimg.com/vi/uYPbbksJxIg/maxresdefault.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/uYPbbksJxIg?si=dwR47AyVZrzE6r7T", alt: "Video 4" }, { type: "image", src: "https://www.hdwallpapers.in/download/spider_man_into_the_spider_verse_2-HD.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/cqGjhVJWtEg?si=DJZsxfZxWY2eA4qk", alt: "Video 4" }, { type: "image", src: "https://comicyears.com/wp-content/uploads/2022/09/Spider-Man-Across-the-Spider-Verse.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/shW9i6k8cB0?si=K31BFtD8p7PFC2_l", alt: "Video 4" }, { type: "image", src: "https://th.bing.com/th/id/OIP.vNWQzXqZ8yLtVud-c3Y3ZQHaEK?rs=1&pid=ImgDetMain", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/GY4BgdUSpbE?si=EHmRiBiy-4bTVXgM", alt: "Video 4" }, { type: "image", src: "https://assets.thehansindia.com/h-upload/2024/11/18/1498108-pushpa-the-rule.webp", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/g3JUbgOHgdw?si=-6m7zAl5OcG20oQ9", alt: "Video 4" }, { type: "image", src: "https://static-koimoi.akamaized.net/wp-content/new-galleries/2023/05/ntr-jr-is-raw-intense-and-tough-in-the-first-look-of-devara-001.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/5cx7rvMvAWo?si=wSGDG9K1YuPyfpv8", alt: "Video 4" }, { type: "image", src: "https://www.crunchyroll.com/imgsrv/display/thumbnail/1200x675/catalog/crunchyroll/1ecde018e863e2aaee31f00a23378c35.jpe", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/MCb13lbVGE0?si=682Iih6-_7MrkEp6", alt: "Video 4" }, { type: "image", src: "https://i0.wp.com/highoncinemaa.com/wp-content/uploads/2023/09/Bleach-TYBW-Thousand-Year-Blood-War-Episode-22-Spoilers-Leaks-and-Summary.png?w=1200&ssl=1", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/Pi_sIP-wjC0?si=axh1SHXelhhQ4gmE", alt: "Video 4" }, { type: "image", src: "https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=1200,height=675/catalog/crunchyroll/bc5934e65dcfc3e6f1f783160ce023fb.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/StlX879LIGk?si=xZ9h_CrXEYxFkRk1", alt: "Video 4" }, { type: "image", src: "https://wallpaperaccess.com/full/36626.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/sBLsE-NKEoI?si=jRKfSdbNepR8BQfg", alt: "Video 4" }, { type: "image", src: "https://static1.cbrimages.com/wordpress/wp-content/uploads/2019/11/Vinland-Saga-Featured-and-Social-Media-Image-1.jpg-1.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/6pX93dXfH9s?si=ngHzmeX8NCggdEHG", alt: "Video 4" }, { type: "image", src: "https://images.thedirect.com/media/article_full/the-boys-season-4-release-cast-and-everything-we-know.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/EzFXDvC-EwM?si=geE6j1OoSaNNRnk0", alt: "Video 4" }, { type: "image", src: "https://image.tmdb.org/t/p/original/whL1DXc6TDGYxtuvVRKRCRWvqni.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/1JLUn2DFW4w?si=D3_Q2WJq7ytcOaB6", alt: "Video 4" }, { type: "image", src: "https://liverpoolnoise.com/wp-content/uploads/2022/06/Stranger-Things-The-Experience-Coming-To-London-Photo-Credit-Stranger-Things-The-Experience.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/d1z4a4us47w?si=KOckYr4PWdjM4bjK", alt: "Video 4" }, { type: "image", src: "https://mlpnk72yciwc.i.optimole.com/cqhiHLc.IIZS~2ef73/w:auto/h:auto/q:75/https://bleedingcool.com/wp-content/uploads/2023/07/JujutsuKaisen_S2_Base_Assets_16x9_1920x1080.jpg", alt: "Image 4" }, { type: "video", src: "https://www.youtube.com/embed/Pm-wNmS9RGI?si=eq2Vi3trFvG_6OQu", alt: "Video 4" }, { type: "image", src: "https://4kwallpapers.com/images/walls/thumbs_3t/19434.jpg", alt: "Image 4" },]; const galleryContainer = document.getElementById("gallery-container"); galleryData.forEach(item => {
+      const galleryItem = document.createElement("div"); galleryItem.classList.add("gallery-item"); if (item.type === "image") { const img = document.createElement("img"); img.src = item.src; img.alt = item.alt; galleryItem.appendChild(img); }
+      else if (item.type === "video") { const videoContainer = document.createElement("div"); videoContainer.classList.add("video-container"); const iframe = document.createElement("iframe"); iframe.src = item.src; iframe.title = item.alt; iframe.allowFullscreen = true; videoContainer.appendChild(iframe); galleryItem.appendChild(videoContainer); }
+      galleryContainer.appendChild(galleryItem);
+    });</script>
+  <footer class=footer>
+    <p>&copy; 2023 Cinemaverse. All rights reserved. All content is the property of their respective owners.
+      Unauthorized use is prohibited.</p>
+  </footer>
+</body>
+
+</html>

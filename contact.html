@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us - Cinemaverse</title>
+  <style id="auth-preload-style">body{display:none!important;}</style>
+  <script>
+    window.__CINEMAVERSE_PROTECT_PAGE__ = true;
+    window.__CINEMAVERSE_UNHIDE_BODY__ = function () {
+      const preloadStyle = document.getElementById('auth-preload-style');
+      if (preloadStyle) preloadStyle.remove();
+      if (document.body) document.body.style.display = '';
+    };
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Electrolize&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Electrolize', sans-serif;
+      background:#000; color:#fff; margin:0;
+    }
+
+    .footer {
+      background:#000; color:#f00; text-align:center; padding:20px;
+      position:relative; bottom:0; width:100%; font-size:16px; font-weight:bold;
+    }
+
+    .contact-container {
+      display:flex; flex-direction:column; align-items:center; padding:50px 20px;
+    }
+    .contact-title { font-size:36px; color:#eb0000; margin-bottom:20px; }
+    .contact-description {
+      font-size:18px; text-align:center; max-width:600px; margin-bottom:40px;
+    }
+    .contact-form {
+      display:flex; flex-direction:column; gap:20px; width:100%; max-width:500px;
+    }
+    .contact-form label { font-size:16px; }
+    .contact-form input, .contact-form textarea {
+      background:#000; color:#fff; border:2px solid #f30707;
+      padding:10px; font-size:16px; border-radius:4px;
+    }
+    .contact-form input::placeholder, .contact-form textarea::placeholder { color:gray; }
+    .contact-form input:focus, .contact-form textarea:focus { outline:0; border-color:#e20909; }
+    .submit-button {
+      background:#d30a0a; color:#fff; font-size:16px; font-weight:bold;
+      border:0; border-radius:4px; padding:12px; cursor:pointer; transition:background-color .3s;
+    }
+    .submit-button:hover { background:#c83c3c; }
+    #contact-status { min-height:20px; font-size:0.95em; }
+  </style>
+
+  <link rel="stylesheet" href="shared-navbar.css">
+  <script src="shared-navbar.js" defer></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script src="card-search.js" defer></script>
+  <script src="performance-utils.js" defer></script>
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-wrapper">
+      <div class="logo-wrapper">
+        <h1 class="logo">Cinemaverse</h1>
+      </div>
+      <div class="menu-container">
+        <ul class="menu-list">
+          <li class="menu-list-item"><a href="index.html">Home</a></li>
+          <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+          <li class="menu-list-item"><a href="series.html">Series</a></li>
+          <li class="menu-list-item"><a href="watchlist.html">Watchlist</a></li>
+          <li class="menu-list-item"><a href="gallery.html">Gallery</a></li>
+          <li class="menu-list-item active"><a href="contact.html">Contact Us</a></li>
+          <li class="menu-list-item"><a href="about.html">About Us</a></li>
+        </ul>
+      </div>
+      <div class="profile-container">
+        <a href="login.html" class="auth-button login-button">Login</a>
+        <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-container">
+    <h2 class="contact-title">Contact Us</h2>
+    <p class="contact-description">
+      Have questions or feedback? Reach out to us, and we’ll get back to you as soon as possible!
+    </p>
+
+    <form id="contact-form" class="contact-form">
+      <label for="contact-name">Name</label>
+      <input id="contact-name" name="name" type="text" placeholder="Your name" required />
+
+      <label for="contact-email">Email</label>
+      <input id="contact-email" name="email" type="email" placeholder="you@example.com" required />
+
+      <label for="contact-message">Message</label>
+      <textarea id="contact-message" name="message" rows="6" placeholder="How can we help?" required></textarea>
+
+      <button type="submit" class="submit-button">Send</button>
+      <p id="contact-status" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <script>
+    let contactClientInitPromise = null;
+
+    async function ensureContactSupabaseClient() {
+      if (window._sb && window._sb.auth) {
+        return window._sb;
+      }
+
+      if (contactClientInitPromise) {
+        return contactClientInitPromise;
+      }
+
+      contactClientInitPromise = (async () => {
+        if (typeof window.ensureSupabaseClient === 'function') {
+          const client = await window.ensureSupabaseClient();
+          if (client) {
+            window._sb = client;
+            return client;
+          }
+        }
+
+        if (window.supabaseClient && window.supabaseClient.auth) {
+          window._sb = window.supabaseClient;
+          return window._sb;
+        }
+
+        throw new Error('Supabase client unavailable');
+      })();
+
+      try {
+        return await contactClientInitPromise;
+      } finally {
+        contactClientInitPromise = null;
+      }
+    }
+
+    const form = document.getElementById('contact-form');
+    const nameEl = document.getElementById('contact-name');
+    const emailEl = document.getElementById('contact-email');
+    const messageEl = document.getElementById('contact-message');
+    const statusEl = document.getElementById('contact-status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = '';
+
+      const name = (nameEl.value || '').trim();
+      const email = (emailEl.value || '').trim();
+      const message = (messageEl.value || '').trim();
+
+      if (!name || !email || !message) {
+        statusEl.textContent = 'Please fill in your name, email, and message.';
+        return;
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        statusEl.textContent = 'Please enter a valid email address.';
+        return;
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      const oldText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      try {
+        const client = await ensureContactSupabaseClient();
+
+        const payload = {
+          name,
+          email,
+          message,
+          created_at: new Date().toISOString()
+        };
+
+        const { error } = await client
+          .from('contact_messages')
+          .insert([payload]);
+
+        if (error) {
+          console.error(error);
+          statusEl.textContent = 'Sorry, something went wrong. Please try again.';
+          alert('Sorry, something went wrong. Please try again.');
+        } else {
+          statusEl.textContent = 'Message sent! We\'ll get back to you soon ✅';
+          form.reset();
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Sorry, something went wrong. Please try again.';
+        alert('Sorry, something went wrong. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await ensureContactSupabaseClient();
+      } catch (error) {
+        console.error('[contact] Supabase init failed:', error);
+        statusEl.textContent = 'Service is initializing. Please try again in a moment.';
+      }
+
+      if (typeof updateAuthUI === 'function') {
+        updateAuthUI();
+      }
+    });
+  </script>
+
+  <footer class="footer">
+    <p><strong>&copy; 2023 Cinemaverse. All rights reserved. All content is the property of their respective owners.
+      Unauthorized use is prohibited.</strong></p>
+  </footer>
+</body>
+</html>

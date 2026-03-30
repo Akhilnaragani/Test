@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=UTF-8>
+    <meta name=viewport content="width=device-width, initial-scale=1.0">
+    <title>Movies - Cinemaverse</title>
+    <style id="auth-preload-style">body{display:none!important;}</style>
+    <script>
+        window.__CINEMAVERSE_PROTECT_PAGE__ = true;
+        window.__CINEMAVERSE_UNHIDE_BODY__ = function () {
+            const preloadStyle = document.getElementById('auth-preload-style');
+            if (preloadStyle) preloadStyle.remove();
+            if (document.body) document.body.style.display = '';
+        };
+    </script>
+    <style>
+        html,
+        body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        body {
+            font-family: 'Electrolize', sans-serif;
+            background-color: black;
+            color: white;
+            margin: 0
+        }
+
+        .movies-list {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 15px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #f00 #1a1a1a
+        }
+
+        .movies-list::-webkit-scrollbar {
+            height: 8px
+        }
+
+        .movies-list::-webkit-scrollbar-thumb {
+            background: #f00;
+            border-radius: 10px
+        }
+
+        .movies-list::-webkit-scrollbar-track {
+            background: #1a1a1a
+        }
+
+        .movie-item {
+            min-width: 200px;
+            flex-shrink: 0;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform .3s ease, box-shadow .3s ease
+        }
+
+        .movie-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4)
+        }
+
+        .movie-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover
+        }
+
+        .movie-item h3 {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #f00
+        }
+
+        .movie-details {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            color: white
+        }
+
+        .movie-details-container {
+            display: flex;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px
+        }
+
+        .movie-details-left img {
+            max-width: 250px;
+            border-radius: 8px
+        }
+
+        .movie-details-right {
+            margin-left: 20px
+        }
+
+        .movie-details-right h2 {
+            margin-bottom: 10px;
+            color: #e60000
+        }
+
+        #close-details {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e60000;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer
+        }
+
+        #close-details:hover {
+            background-color: #f33
+        }
+
+        .movie-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8)
+        }
+
+        .movie-modal-content {
+            position: relative;
+            margin: auto;
+            top: 5%;
+            width: 90%;
+            max-width: 1200px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            color: #333
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            color: #aaa;
+            font-size: 35px;
+            font-weight: bold
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            cursor: pointer
+        }
+
+        .movie-modal img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px
+        }
+
+        .movie-modal h2 {
+            font-size: 2em;
+            color: #e50914;
+            text-align: center
+        }
+
+        .movie-modal p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 15px 0
+        }
+
+        .movie-modal ul {
+            list-style: none;
+            padding-left: 0
+        }
+
+        .movie-modal li {
+            font-size: 1.1em;
+            margin-bottom: 10px
+        }
+
+        .movie-details-right button {
+            width: 100%;
+            padding: 15px 20px;
+            margin-top: 15px;
+            border: 0;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all .3s ease
+        }
+
+        #watch-now {
+            background-color: #e60000;
+            color: white;
+            box-shadow: 0 6px 10px rgba(230, 0, 0, 0.6)
+        }
+
+        #watch-now:hover {
+            background-color: #f33;
+            transform: scale(1.1)
+        }
+
+        #add-to-watchlist {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 6px 10px rgba(0, 123, 255, 0.6)
+        }
+
+        #add-to-watchlist:hover {
+            background-color: #0056b3;
+            transform: scale(1.1)
+        }
+
+        #close-details {
+            display: block;
+            width: 100px;
+            margin: 15px auto;
+            padding: 8px 10px;
+            background-color: #e5db11;
+            color: white;
+            font-size: .9em;
+            font-weight: bold;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color .3s ease
+        }
+
+        #close-details:hover {
+            background-color: #666
+        }
+
+        .user-rating {
+            margin-top: 20px;
+            text-align: center
+        }
+
+        .user-rating .star {
+            font-size: 2em;
+            color: #ccc;
+            cursor: pointer;
+            transition: color .3s ease, transform .2s ease
+        }
+
+        .user-rating .star:hover,
+        .user-rating .star:hover~.star {
+            color: #ccc
+        }
+
+        .user-rating .star:hover~.star,
+        .user-rating .star:hover~.star:hover {
+            transform: none
+        }
+
+        .user-rating .star:hover,
+        .user-rating .star:hover~.star {
+            transform: none
+        }
+
+        .user-rating .star:hover~.star {
+            transform: none
+        }
+
+        .user-rating .star:hover,
+        .user-rating .star.selected {
+            color: gold
+        }
+
+        .user-rating .star.selected:hover {
+            color: gold
+        }
+
+        #rating-feedback {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #ddd
+        }
+
+        #series-details {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000
+        }
+
+        .series-details-container {
+            display: flex;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px
+        }
+
+        .series-details-left img {
+            max-width: 250px;
+            border-radius: 8px
+        }
+
+        .series-details-right {
+            margin-left: 20px;
+            flex: 1
+        }
+
+        .series-details-right h2 {
+            color: #f00;
+            margin-bottom: 10px
+        }
+
+        .series-details-right p {
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 15px
+        }
+
+        #close-series-details {
+            display: block;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f00;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color .3s ease
+        }
+
+        #close-series-details:hover {
+            background-color: #f33
+        }
+
+        .series-details-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px
+        }
+
+        .series-details-buttons button {
+            padding: 10px 15px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform .3s ease
+        }
+
+        .series-details-buttons #watch-now {
+            background-color: #e60000
+        }
+
+        .series-details-buttons #add-to-watchlist {
+            background-color: #007bff
+        }
+
+        .series-details-buttons button:hover {
+            transform: scale(1.05)
+        }
+
+        #series-details {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000
+        }
+
+        .series-details-container {
+            display: flex;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 90%
+        }
+
+        .series-details-left img {
+            max-width: 250px;
+            border-radius: 8px
+        }
+
+        .series-details-right {
+            margin-left: 20px;
+            flex: 1
+        }
+
+        .series-details-right h2 {
+            margin-bottom: 10px;
+            color: #f00
+        }
+
+        #close-series-details {
+            display: block;
+            width: 100px;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e60000;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color .3s ease
+        }
+
+        #close-series-details:hover {
+            background-color: #f33
+        }
+
+        .series-user-rating {
+            margin-top: 20px;
+            text-align: center
+        }
+
+        .series-user-rating .star {
+            font-size: 2em;
+            color: #ccc;
+            cursor: pointer;
+            transition: color .3s ease, transform .2s ease
+        }
+
+        .series-user-rating .star:hover,
+        .series-user-rating .star.selected {
+            color: gold
+        }
+
+        #series-rating-feedback {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #ddd
+        }
+
+        .footer {
+            background-color: black;
+            color: red;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold
+        }
+    </style>
+    <link rel="stylesheet" href="shared-navbar.css">
+    <script src="shared-navbar.js" defer></script>
+    <link rel="stylesheet" href="shared-cards.css">
+    <style>
+        .movies-list {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 15px !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            scroll-behavior: smooth;
+            padding-bottom: 10px !important;
+            scrollbar-width: thin;
+            scrollbar-color: #f00 #1a1a1a;
+        }
+
+        .movies-list::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .movies-list::-webkit-scrollbar-thumb {
+            background: #f00;
+            border-radius: 10px;
+        }
+
+        .movies-list::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .movie-item {
+            min-width: 200px !important;
+            flex-shrink: 0 !important;
+            cursor: pointer;
+        }
+
+        .movie-item.dynamic-card {
+            width: 200px;
+        }
+
+        .movie-item.dynamic-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .movie-item.dynamic-card h3 {
+            min-height: 2.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+        }
+
+        .watchlist-btn {
+            display: block;
+            margin: 8px auto 0;
+            padding: 8px 12px;
+            border: 1px solid #ff4646;
+            border-radius: 6px;
+            background: transparent;
+            color: #ff4646;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .watchlist-btn:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+
+        #series-details .series-details-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        #series-details .series-details-buttons button {
+            margin-top: 0;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            font-size: 1.18rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            line-height: 1.1;
+            min-height: 58px;
+            white-space: normal;
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        #series-details .series-details-buttons #watch-now {
+            background: linear-gradient(135deg, #ff2f2f 0%, #cf0000 100%);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(220, 15, 15, 0.35);
+        }
+
+        #series-details .series-details-buttons #add-to-watchlist {
+            background: linear-gradient(135deg, #31a4ff 0%, #1c5dff 100%);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(36, 116, 255, 0.32);
+        }
+
+        #series-details .series-details-buttons button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        #series-details .series-details-buttons button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 700px) {
+            #series-details .series-details-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel=stylesheet>
+        <script src="performance-utils.js" defer></script>
+        <script src="auth.js" defer></script>
+    <script src="series-details.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="watchlist-api.js" defer></script>
+    <script src="card-search.js" defer></script>
+</head>
+
+<body>
+    <script>
+            document.addEventListener('DOMContentLoaded', async () => {
+                if (typeof checkAuth !== 'function') return;
+                const result = await checkAuth();
+                if (result && typeof updateAuthUI === 'function') {
+                    updateAuthUI();
+                }
+            });
+    </script>
+
+    <div class="navbar">
+        <div class="navbar-wrapper">
+            <div class="logo-wrapper">
+                <h1 class="logo">Cinemaverse</h1>
+            </div>
+            <div class="menu-container">
+                <ul class="menu-list">
+                    <li class="menu-list-item"><a href="index.html">Home</a></li>
+                    <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+                    <li class="menu-list-item active"><a href="series.html">Series</a></li>
+                    <li class="menu-list-item"><a href="watchlist.html">Watchlist</a></li>
+                    <li class="menu-list-item"><a href="gallery.html">Gallery</a></li>
+                    <li class="menu-list-item"><a href="contact.html">Contact Us</a></li>
+                    <li class="menu-list-item"><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div class="profile-container">
+                <a href="login.html" class="auth-button login-button">Login</a>
+                <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+            </div>
+        </div>
+    </div>
+    <section class=movie-category>
+        <h2>Popular Series</h2>
+        <div class=movies-list data-category="Popular">
+            <div class=movie-item onclick="showSeriesDetails('One-Piece')">
+                <img src="https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=480,height=720/catalog/crunchyroll/757bae5a21039bac6ebace5de9affcd8.jpg"
+                    alt="Movie 1">
+                <h3>One-Piece</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Breaking Bad')">
+                <img src=https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg
+                    alt="Movie 2">
+                <h3>Breaking Bad</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Game of Thrones')">
+                <img src=https://m.media-amazon.com/images/M/MV5BMTNhMDJmNmYtNDQ5OS00ODdlLWE0ZDAtZTgyYTIwNDY3OTU3XkEyXkFqcGc@._V1_.jpg
+                    alt="Movie 2">
+                <h3>Game of Thrones</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('The-Boys')">
+                <img src=https://flxt.tmsimg.com/assets/p18637010_b_v13_ae.jpg alt="Movie 2">
+                <h3>The-Boys</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Stranger-Things')">
+                <img src="https://th.bing.com/th/id/OIP.PzbFGAdJQgSq7GHUqNS2bwAAAA?w=474&h=592&rs=1&pid=ImgDetMain"
+                    alt="Movie 2">
+                <h3>Stranger Things</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Jujutsu Kaisen')">
+                <img src="https://th.bing.com/th/id/OIP.Hn0TEwPFdZozpA9klAFKCwAAAA?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Jujutsu Kaisen</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Bleach-TYBW')">
+                <img src="https://th.bing.com/th/id/OIP.LE-6ZSy1TpNPJYV_hIby3QHaKe?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Bleach-TYBW</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Loki')">
+                <img src=https://telltaletv.com/wp-content/uploads/2021/05/loki_digital_keyart_payoff_943c5bc1-730x1082.jpeg
+                    alt="Movie 2">
+                <h3>Loki</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Moonknight')">
+                <img src="https://th.bing.com/th/id/OIP.zgX8oz7aKIeGeZkUSzQ1pQHaKg?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Moonknight</h3>
+            </div>
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Seinen series</h2>
+        <div class=movies-list data-category="Seinen">
+            <div class=movie-item onclick="showSeriesDetails('Vinland saga')">
+                <img src=https://fr.web.img4.acsta.net/pictures/19/09/16/17/09/4903250.jpg alt="Movie 1">
+                <h3>Vinland saga</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Tokyo Ghoul')">
+                <img src="https://th.bing.com/th/id/OIP.puR-0yoH2KALEttlH4BBswHaKn?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Tokyo Ghoul</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Berserk')">
+                <img src=https://cdnb.artstation.com/p/assets/images/images/060/563/109/large/chris-arias-berserkf-1.jpg?1678836910
+                    alt="Movie 3">
+                <h3>Berserk</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('JOJO')">
+                <img src="https://th.bing.com/th/id/OIP.JciYkWzMgRxwdpRuKtQ7YQAAAA?rs=1&pid=ImgDetMain" alt="Movie 4">
+                <h3>JOJO</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Tomodachi Game')">
+                <img src="https://cdn.shopify.com/s/files/1/1263/7089/products/tomodachi_game_10_1024x1024.png?v=1521124694"
+                    alt="Movie 5">
+                <h3>Tomodachi Game</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Code Geass')">
+                <img src="https://th.bing.com/th/id/OIP.jhHQmCbMTc3OdNkzJiPjYQHaLP?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Code Geass</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Bungou Stray Dogs')">
+                <img src="https://th.bing.com/th/id/OIP.0WpCQSwo4lNkMAle1DRwvwHaKu?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Bungou Stray Dogs</h3>
+            </div>
+            <!-- <div class=movie-item onclick="showSeriesDetails('One punch man')">
+                <img src=https://dailyanimeart.files.wordpress.com/2015/10/one-punch-man-poster.jpg alt="Movie 5">
+                <h3>One punch man</h3>
+            </div> -->
+            <div class=movie-item onclick="showSeriesDetails('Monster')">
+                <img src="https://th.bing.com/th/id/OIP.B0-LuYTGRO7WhvZZ_81RBwHaJ1?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Monster</h3>
+            </div>
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Latest Series</h2>
+        <div class=movies-list data-category="Latest">
+            <div class=movie-item onclick="showSeriesDetails('Bleach-TYBW')">
+                <img src="https://th.bing.com/th/id/OIP.LE-6ZSy1TpNPJYV_hIby3QHaKe?rs=1&pid=ImgDetMain" alt="Movie 1">
+                <h3>Bleach-TYBW</h3>
+            </div>
+            <!-- <div class=movie-item onclick="showSeriesDetails('Agatha All Along')">
+                <img src=https://m.media-amazon.com/images/M/MV5BY2I0MjczMWItMTFlMy00MDdkLWI0ODUtN2MxMDMyMTg3Y2MxXkEyXkFqcGdeQXVyNzEzMDcwMDE@._V1_.jpg
+                    alt="Movie 2">
+                <h3>Agatha All Along</h3>
+            </div> -->
+            <div class=movie-item onclick="showSeriesDetails('The Penguin')">
+                <img src="https://media2.firstshowing.net/firstshowing/img16/ThePenguinSeriespostermain5992.jpg?width=599"
+                    alt="Movie 3">
+                <h3>The Penguin</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Jujutsu-Kaisen Season-2')">
+                <img src=https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974714803/jujutsu-kaisen-vol-4-9781974714803_hr.jpg
+                    alt="Movie 4">
+                <h3>Jujutsu-Kaisen Season-2</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Blue Lock')">
+                <img src="https://th.bing.com/th/id/OIP.sFWySjln6RzCAIX_4t8ykAHaJ4?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Blue Lock </h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Dandadan')">
+                <img src=https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974742837/dandadan-vol-6-9781974742837_hr.jpg
+                    alt="Movie 6">
+                <h3>Dandadan</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('My Hero Academia')">
+                <img src=https://pbs.twimg.com/media/FnOBO8hWYAAVpqE.jpg:large alt="Movie 6">
+                <h3>My Hero Academia </h3>
+            </div>
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Top-Rated Series on IMDb</h2>
+        <div class=movies-list  data-category="TopRated">
+            <div class=movie-item onclick="showSeriesDetails('Breaking Bad')">
+                <img src=https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg
+                    alt="Movie 1">
+                <h3>Breaking Bad</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Attack on Titan')">
+                <img src="https://th.bing.com/th/id/OIP.VJ-yiseFyWf8mezviQ3BUAAAAA?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Attack on Titan</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('One piece')">
+                <img src=https://i.pinimg.com/736x/97/95/58/9795588e0873b9c49ab0e92ee2e631d9.jpg alt="Movie 3">
+                <h3>One piece</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Jojo Steel Ball Run')">
+                <img src=https://static.jojowiki.com/images/thumb/4/46/latest/20191015215618/Volume_82.jpg/800px-Volume_82.jpg
+                    alt="Movie 4">
+                <h3>Jojo Steel Ball Run</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Berserk')">
+                <img src=https://i.pinimg.com/originals/1e/f6/41/1ef64178eb9cd5657a9c38b449dbad9b.jpg alt="Movie 5">
+                <h3>Berserk</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Loki Season-2')">
+                <img src=https://static1.colliderimages.com/wordpress/wp-content/uploads/2023/11/tom-hiddlestone-god-loki-season-2-poster.jpg
+                    alt="Movie 6">
+                <h3>Loki Season-2</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Moonknight')">
+                <img src="https://th.bing.com/th/id/OIP.zgX8oz7aKIeGeZkUSzQ1pQHaKg?rs=1&pid=ImgDetMain" alt="Movie 6">
+                <h3>Moonknight</h3>
+            </div>
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Comedy Series</h2>
+        <div class=movies-list data-category="Comedy">
+            <div class=movie-item onclick="showSeriesDetails('Young-Sheldon')">
+                <img src="https://th.bing.com/th/id/OIP.FgF_eOMYuqjEWM5SxUeQVAHaLH?rs=1&pid=ImgDetMain" alt="Movie 1">
+                <h3>Young-Sheldon</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Gintama')">
+                <img src="https://th.bing.com/th/id/R.a1082c5891272a7f3ea2ea3617eb97f7?rik=ULs4V2dDVdigtw&riu=http%3a%2f%2fwww.anime-planet.com%2fimages%2fmanga%2fcovers%2fgintama-110.jpg&ehk=wGuFJppjapS%2be5WAsc7h0YfB5STnh0Kf9XgdjWgZAok%3d&risl=&pid=ImgRaw&r=0"
+                    alt="Movie 2">
+                <h3>Gintama</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('The Boys')">
+                <img src=https://flxt.tmsimg.com/assets/p18637010_b_v13_ae.jpg alt="Movie 3">
+                <h3>The Boys</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Ultimate Spider-Man')">
+                <img src="https://th.bing.com/th/id/OIP.oIyuWTkAvO06DgJ4v8O9mgHaKO?w=1000&h=1381&rs=1&pid=ImgDetMain"
+                    alt="Movie 4">
+                <h3>Ultimate Spider-Man</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('One punch Man')">
+                <img src="https://th.bing.com/th/id/OIP.c1BIgCmiegVfvZN2v1SucAHaLH?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>One punch Man</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Spy X Family')">
+                <img src="https://th.bing.com/th/id/OIP.DxLK-dFq2HDl_ZWU-qt-GQHaLH?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Spy X Family</h3>
+            </div>
+            <!-- <div class=movie-item onclick="showSeriesDetails('Life of saiki')">
+                <img src=https://m.media-amazon.com/images/M/MV5BYmFiNTU2YWUtZjVjYy00MDJmLThlNzMtYTBhNzZmMmUyN2JlXkEyXkFqcGdeQXVyMTMzNDc0Nzky._V1_UY1200_CR85,0,630,1200_AL_.jpg
+                    alt="Movie 5">
+                <h3>Life of saiki</h3>
+            </div> -->
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Action Series</h2>
+        <div class=movies-list data-category="Action">
+            <div class=movie-item onclick="showSeriesDetails('Loki')">
+                <img src=https://static1.colliderimages.com/wordpress/wp-content/uploads/2023/11/tom-hiddlestone-god-loki-season-2-poster.jpg
+                    alt="Movie 1">
+                <h3>Loki</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Attack on Titan')">
+                <img src="https://th.bing.com/th/id/OIP.VJ-yiseFyWf8mezviQ3BUAAAAA?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Attack On Titan</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Bleach-TYBW')">
+                <img src=https://cdnb.artstation.com/p/assets/images/images/051/349/537/large/kevin-tran-koan-tybw4.jpg?1657071769
+                    alt="Movie 3">
+                <h3>Bleach-TYBW</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('One piece')">
+                <img src="https://th.bing.com/th/id/OIP.jFV6Xc3q3kvpyod3Nv5PAQHaLH?rs=1&pid=ImgDetMain" alt="Movie 4">
+                <h3>One piece</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Demon Slayer')">
+                <img src=https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974720972/demon-slayer-kimetsu-no-yaiba-vol-20-9781974720972_hr.jpg
+                    alt="Movie 5">
+                <h3>Demon Slayer</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Vinland saga')">
+                <img src=https://fr.web.img4.acsta.net/pictures/19/09/16/17/09/4903250.jpg alt="Movie 5">
+                <h3>Vinland saga</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Berserk')">
+                <img src="https://th.bing.com/th/id/OIP.1Qt1-0GAGeW9gSKIpShmFgHaKZ?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Berserk</h3>
+            </div>
+        </div>
+    </section>
+    <section class=movie-category>
+        <h2>Sports series</h2>
+        <div class=movies-list data-category="Sports">
+            <div class=movie-item onclick="showSeriesDetails('Blue lock')">
+                <img src=https://cdn.kobo.com/book-images/8f338bb8-ad59-469b-8708-9c91001a4350/1200/1200/False/blue-lock-6.jpg
+                    alt="Movie 1">
+                <h3>Blue lock</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Haikyuu')">
+                <img src="https://th.bing.com/th/id/OIP._Z_EcuoYByl9qXRDMDPpdgHaLH?rs=1&pid=ImgDetMain" alt="Movie 2">
+                <h3>Haikyuu</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Kuro kono Basketball')">
+                <img src=https://images-na.ssl-images-amazon.com/images/M/MV5BNTdkOWI0NmYtMWIzYy00ZTJmLTkxZmQtYjZjMGM5ODJiZDM0XkEyXkFqcGdeQXVyNTAyODkwOQ@@._V1_.jpg
+                    alt="Movie 3">
+                <h3>Kuro kono Basketball</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Aoashi')">
+                <img src="https://th.bing.com/th/id/OIP.lnsSEf6UY-bmVNqJNSaelQHaKb?rs=1&pid=ImgDetMain" alt="Movie 4">
+                <h3>Aoashi</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Hajime no ippo')">
+                <img src="https://th.bing.com/th/id/OIP.u6uQ790zZZj8GWqvsC4UYAHaLH?rs=1&pid=ImgDetMain" alt="Movie 5">
+                <h3>Hajime no ippo</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Baki')">
+                <img src=https://i.pinimg.com/originals/0e/f7/81/0ef78195f823615e33e69d6e7331a2d2.jpg alt="Movie 5">
+                <h3>Baki</h3>
+            </div>
+            <div class=movie-item onclick="showSeriesDetails('Haikyuu Season-2')">
+                <img src=https://img.wattpad.com/cover/322352166-512-k622755.jpg alt="Movie 5">
+                <h3>Haikyuu Season-2</h3>
+            </div>
+        </div>
+    </section>
+    <div id=series-details>
+        <div class=series-details-container>
+            <div class=series-details-left>
+                <img id=series-poster src alt="Series Poster">
+            </div>
+            <div class=series-details-right>
+                <h2 id=series-title></h2>
+                <p id=series-description></p>
+                <p><strong>Genre:</strong> <span id=series-type></span></p>
+                <p><strong>Rating:</strong> <span id=rating-value></span></p>
+                <div class=series-details-buttons>
+                    <button id=watch-now onclick=watchNow()>Watch Now</button>
+                    <button id="add-to-watchlist" onclick=addToWatchlist()>Add to Watchlist</button>
+                </div>
+                <div class=series-user-rating>
+                    <span class=star data-value=1>&#9733;</span>
+                    <span class=star data-value=2>&#9733;</span>
+                    <span class=star data-value=3>&#9733;</span>
+                    <span class=star data-value=4>&#9733;</span>
+                    <span class=star data-value=5>&#9733;</span>
+                </div>
+                <p id=series-rating-feedback></p>
+                <button id=close-series-details>Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Keep simple playback helper. Legacy addToWatchlist removed — page delegates to unified API.
+        function watchNow() { const seriesTitle = document.getElementById('series-title').innerText; alert(`You are now watching ${seriesTitle}!`); }
+
+        document.querySelectorAll('.star').forEach(star => { star.addEventListener('click', function () { const ratingValue = this.getAttribute('data-value'); document.getElementById('rating-value').innerText = ratingValue; document.getElementById('series-rating-feedback').innerText = `You rated this series ${ratingValue}star${ratingValue > 1 ? 's' : ''}!`; }); }); document.getElementById('close-series-details').addEventListener('click', function () { document.getElementById('series-details').style.display = 'none'; });
+    </script>
+    <footer class=footer>
+        <p><strong>&copy; 2023 Cinemaverse. All rights reserved. All content is the property of their respective owners.
+                Unauthorized use is prohibited.</strong></p>
+    </footer>
+    <script>function showSeriesDetails(seriesName) { const seriesDetails = { "One-Piece": { title: "One-Piece", description: "Follow the adventures of Monkey D. Luffy and his pirate crew in order to find the greatest treasure ever left by the legendary Pirate, Gold Roger.", type: "Adventure", poster: "https://imgsrv.crunchyroll.com/cdn-cgi/image/fit=contain,format=auto,quality=85,width=480,height=720/catalog/crunchyroll/757bae5a21039bac6ebace5de9affcd8.jpg", rating: 4.8 }, "Breaking Bad": { title: "Breaking Bad", description: "A high school chemistry teacher turned methamphetamine manufacturer partners with a former student to secure his family's future.", type: "Crime", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", rating: 4.9 }, "Game of Thrones": { title: "Game of Thrones", description: "Noble families vie for control of the Iron Throne as ancient threats resurface in the epic land of Westeros.", type: "Fantasy", poster: "https://m.media-amazon.com/images/M/MV5BMTNhMDJmNmYtNDQ5OS00ODdlLWE0ZDAtZTgyYTIwNDY3OTU3XkEyXkFqcGc@._V1_.jpg", rating: 4.8 }, "The-Boys": { title: "The Boys", description: "A group of vigilantes sets out to take down corrupt superheroes who abuse their superpowers.", type: "Action", poster: "https://flxt.tmsimg.com/assets/p18637010_b_v13_ae.jpg", rating: 4.5 }, "Stranger-Things": { title: "Stranger Things", description: "A group of young friends witnesses supernatural forces and secret government exploits as they search for a missing boy.", type: "Sci-Fi", poster: "https://th.bing.com/th/id/OIP.PzbFGAdJQgSq7GHUqNS2bwAAAA?w=474&h=592&rs=1&pid=ImgDetMain", rating: 4.7 }, "Jujutsu Kaisen": { title: "Jujutsu Kaisen", description: "A high school student joins a secret organization to combat supernatural threats and curses.", type: "Anime", poster: "https://th.bing.com/th/id/OIP.Hn0TEwPFdZozpA9klAFKCwAAAA?rs=1&pid=ImgDetMain", rating: 4.6 }, "Bleach-TYBW": { title: "Bleach: TYBW", description: "Ichigo Kurosaki's life as a soul reaper continues in the Thousand-Year Blood War arc.", type: "Anime", poster: "https://th.bing.com/th/id/OIP.LE-6ZSy1TpNPJYV_hIby3QHaKe?rs=1&pid=ImgDetMain", rating: 4.4 }, "Loki": { title: "Loki", description: "The God of Mischief returns in an adventure that takes place after the events of Avengers: Endgame.", type: "Fantasy", poster: "https://telltaletv.com/wp-content/uploads/2021/05/loki_digital_keyart_payoff_943c5bc1-730x1082.jpeg", rating: 4.3 }, "Moonknight": { title: "Moonknight", description: "A former Marine with dissociative identity disorder becomes the vengeful Moon Knight.", type: "Action", poster: "https://th.bing.com/th/id/OIP.zgX8oz7aKIeGeZkUSzQ1pQHaKg?rs=1&pid=ImgDetMain", rating: 4.5 }, "Vinland saga": { title: "Vinland Saga", description: "A young Viking warrior seeks revenge for his father's death while embarking on an epic journey of transformation and self-discovery in medieval Europe.", type: "Historical, Action, Seinen", poster: "https://fr.web.img4.acsta.net/pictures/19/09/16/17/09/4903250.jpg", rating: 4.7 }, "Tokyo Ghoul": { title: "Tokyo Ghoul", description: "A college student is transformed into a half-ghoul and must navigate the dangerous world between humans and flesh-eating ghouls.", type: "Dark Fantasy, Horror, Seinen", poster: "https://th.bing.com/th/id/OIP.puR-0yoH2KALEttlH4BBswHaKn?rs=1&pid=ImgDetMain", rating: 4.5 }, "Berserk": { title: "Berserk", description: "A dark and brutal tale of a mercenary warrior seeking revenge against a former comrade who betrayed him and destroyed everything he held dear.", type: "Dark Fantasy, Action, Seinen", poster: "https://cdnb.artstation.com/p/assets/images/images/060/563/109/large/chris-arias-berserkf-1.jpg?1678836910", rating: 4.8 }, "JOJO": { title: "JOJO", description: "A multi-generational saga following the Joestar family's battles against supernatural forces and powerful enemies.", type: "Action, Adventure, Supernatural", poster: "https://th.bing.com/th/id/OIP.JciYkWzMgRxwdpRuKtQ7YQAAAA?rs=1&pid=ImgDetMain", rating: 4.6 }, "Tomodachi Game": { title: "Tomodachi Game", description: "A psychological thriller about a group of friends trapped in a deadly game that tests the limits of their friendship and trust.", type: "Psychological, Thriller, Seinen", poster: "https://cdn.shopify.com/s/files/1/1263/7089/products/tomodachi_game_10_1024x1024.png?v=1521124694", rating: 4.3 }, "Code Geass": { title: "Code Geass", description: "A exiled prince gains the power to control people's minds and leads a rebellion against an oppressive empire.", type: "Mecha, Political, Sci-Fi", poster: "https://th.bing.com/th/id/OIP.jhHQmCbMTc3OdNkzJiPjYQHaLP?rs=1&pid=ImgDetMain", rating: 4.7 }, "Bungou Stray Dogs": { title: "Bungou Stray Dogs", description: "A detective agency filled with members who possess supernatural abilities investigates mysterious cases in Yokohama.", type: "Supernatural, Action, Comedy", poster: "https://th.bing.com/th/id/OIP.0WpCQSwo4lNkMAle1DRwvwHaKu?rs=1&pid=ImgDetMain", rating: 4.4 }, "One punch man": { title: "One Punch Man", description: "A superhero who can defeat any opponent with a single punch struggles with the boredom of being unbeatable.", type: "Action, Comedy, Superhero", poster: "https://dailyanimeart.files.wordpress.com/2015/10/one-punch-man-poster.jpg", rating: 4.6 }, "Monster": { title: "Monster", description: "A brilliant surgeon's life is turned upside down after he saves a young boy who grows up to become a serial killer.", type: "Psychological, Thriller, Drama", poster: "https://th.bing.com/th/id/OIP.B0-LuYTGRO7WhvZZ_81RBwHaJ1?rs=1&pid=ImgDetMain", rating: 4.9 }, "Blue lock": { title: "Blue Lock", description: "A controversial training program selects and trains the best young soccer players to create the ultimate striker for the Japanese national team.", type: "Sports, Psychological", poster: "https://cdn.kobo.com/book-images/8f338bb8-ad59-469b-8708-9c91001a4350/1200/1200/False/blue-lock-6.jpg", rating: 4.5 }, "Haikyuu": { title: "Haikyuu", description: "A short volleyball player's journey to become a top player, inspired by a legendary player known as the 'Little Giant'.", type: "Sports, Comedy, Drama", poster: "https://th.bing.com/th/id/OIP._Z_EcuoYByl9qXRDMDPpdgHaLH?rs=1&pid=ImgDetMain", rating: 4.7 }, "Kuro kono Basketball": { title: "Kuroko no Basketball", description: "A group of basketball players with extraordinary skills, known as the 'Generation of Miracles', compete in high school tournaments.", type: "Sports, Supernatural", poster: "https://images-na.ssl-images-amazon.com/images/M/MV5BNTdkOWI0NmYtMWIzYy00ZTJmLTkxZmQtYjZjMGM5ODJiZDM0XkEyXkFqcGdeQXVyNTAyODkwOQ@@._V1_.jpg", rating: 4.6 }, "Aoashi": { title: "Aoashi", description: "A talented but hot-headed young soccer player learns the deeper strategies and teamwork required to become a professional.", type: "Sports, Drama", poster: "https://th.bing.com/th/id/OIP.lnsSEf6UY-bmVNqJNSaelQHaKb?rs=1&pid=ImgDetMain", rating: 4.4 }, "Hajime no ippo": { title: "Hajime no Ippo", description: "A shy high school student discovers boxing and transforms himself into a passionate and skilled boxer.", type: "Sports, Drama", poster: "https://th.bing.com/th/id/OIP.u6uQ790zZZj8GWqvsC4UYAHaLH?rs=1&pid=ImgDetMain", rating: 4.8 }, "Baki": { title: "Baki", description: "An intense martial arts series following Baki Hanma's journey to become the strongest fighter in the world.", type: "Martial Arts, Action", poster: "https://i.pinimg.com/originals/0e/f7/81/0ef78195f823615e33e69d6e7331a2d2.jpg", rating: 4.5 }, "Haikyuu Season-2": { title: "Haikyuu Season 2", description: "Continuing the volleyball journey of Karasuno High School's team as they face new challenges and stronger opponents.", type: "Sports, Comedy, Drama", poster: "https://img.wattpad.com/cover/322352166-512-k622755.jpg", rating: 4.6 }, "Agatha All Along": { title: "Agatha All Along", description: "A spin-off series focusing on Agatha Harkness, exploring her mysterious past and magical abilities in the Marvel Cinematic Universe.", type: "Superhero, Fantasy, Comedy", poster: "https://m.media-amazon.com/images/M/MV5BY2I0MjczMWItMTFlMy00MDdkLWI0ODUtN2MxMDMyMTg3Y2MxXkEyXkFqcGdeQXVyNzEzMDcwMDE@._V1_.jpg", rating: 4.3 }, "The Penguin": { title: "The Penguin", description: "A gritty crime drama exploring the rise of Oswald Cobblepot (The Penguin) in Gotham City's criminal underworld.", type: "Crime, Drama, Superhero", poster: "https://media2.firstshowing.net/firstshowing/img16/ThePenguinSeriespostermain5992.jpg?width=599", rating: 4.5 }, "Jujutsu-Kaisen Season-2": { title: "Jujutsu Kaisen Season 2", description: "Continuing the supernatural battles of Yuji Itadori and his fellow jujutsu sorcerers, featuring the intense Shibuya Incident arc.", type: "Anime, Action, Supernatural", poster: "https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974714803/jujutsu-kaisen-vol-4-9781974714803_hr.jpg", rating: 4.7 }, "Blue Lock": { title: "Blue Lock", description: "A high-stakes soccer training program that aims to create the ultimate striker for the Japanese national team through intense psychological and physical challenges.", type: "Sports, Psychological", poster: "https://th.bing.com/th/id/OIP.sFWySjln6RzCAIX_4t8ykAHaJ4?rs=1&pid=ImgDetMain", rating: 4.6 }, "Dandadan": { title: "Dandadan", description: "A supernatural comedy following a high school student who encounters both aliens and ghosts, blending sci-fi and paranormal elements.", type: "Supernatural, Comedy, Sci-Fi", poster: "https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974742837/dandadan-vol-6-9781974742837_hr.jpg", rating: 4.4 }, "My Hero Academia": { title: "My Hero Academia", description: "In a world where superpowers are common, a young boy without abilities dreams of becoming a hero and attends a prestigious hero academy.", type: "Superhero, Action, Anime", poster: "https://pbs.twimg.com/media/FnOBO8hWYAAVpqE.jpg:large", rating: 4.8 }, "Breaking Bad": { title: "Breaking Bad", description: "A high school chemistry teacher turned methamphetamine manufacturer partners with a former student to secure his family's future.", type: "Crime", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", rating: 4.9 }, "Attack on Titan": { title: "Attack on Titan", description: "In a world where humanity resides within enormous walled cities to protect themselves from Titans, a young boy joins the military to fight against these monstrous beings.", type: "Action, Fantasy", poster: "https://th.bing.com/th/id/OIP.VJ-yiseFyWf8mezviQ3BUAAAAA?rs=1&pid=ImgDetMain", rating: 4.8 }, "One piece": { title: "One Piece", description: "Follow the adventures of Monkey D. Luffy and his pirate crew in order to find the greatest treasure ever left by the legendary Pirate, Gold Roger.", type: "Adventure", poster: "https://i.pinimg.com/736x/97/95/58/9795588e0873b9c49ab0e92ee2e631d9.jpg", rating: 4.8 }, "Jojo Steel Ball Run": { title: "Jojo Steel Ball Run", description: "A story set in the United States during the late 19th century, following the Steel Ball Run race and its participants, filled with supernatural battles.", type: "Action, Adventure", poster: "https://static.jojowiki.com/images/thumb/4/46/latest/20191015215618/Volume_82.jpg/800px-Volume_82.jpg", rating: 4.7 }, "Berserk": { title: "Berserk", description: "A dark and brutal tale of a mercenary warrior seeking revenge against a former comrade who betrayed him and destroyed everything he held dear.", type: "Dark Fantasy, Action", poster: "https://i.pinimg.com/originals/1e/f6/41/1ef64178eb9cd5657a9c38b449dbad9b.jpg", rating: 4.8 }, "Loki Season-2": { title: "Loki Season-2", description: "The God of Mischief returns in an adventure that takes place after the events of Avengers: Endgame.", type: "Fantasy, Action", poster: "https://static1.colliderimages.com/wordpress/wp-content/uploads/2023/11/tom-hiddlestone-god-loki-season-2-poster.jpg", rating: 4.3 }, "Moonknight": { title: "Moonknight", description: "A former Marine with dissociative identity disorder becomes the vengeful Moon Knight.", type: "Action, Superhero", poster: "https://th.bing.com/th/id/OIP.zgX8oz7aKIeGeZkUSzQ1pQHaKg?rs=1&pid=ImgDetMain", rating: 4.5 }, "Young-Sheldon": { title: "Young Sheldon", description: "A spin-off prequel to The Big Bang Theory, following the childhood of Sheldon Cooper as he navigates life as a child prodigy.", type: "Comedy", poster: "https://th.bing.com/th/id/OIP.FgF_eOMYuqjEWM5SxUeQVAHaLH?rs=1&pid=ImgDetMain", rating: 4.2 }, "Gintama": { title: "Gintama", description: "In an alternate-history late Edo period, an alien invasion has taken over Japan. A samurai, Gintoki Sakata, takes on odd jobs to make ends meet.", type: "Comedy, Action", poster: "https://th.bing.com/th/id/R.a1082c5891272a7f3ea2ea3617eb97f7?rik=ULs4V2dDVdigtw&riu=http%3a%2f%2fwww.anime-planet.com%2fimages%2fmanga%2fcovers%2fgintama-110.jpg&ehk=wGuFJppjapS%2be5WAsc7h0YfB5STnh0Kf9XgdjWgZAok%3d&risl=&pid=ImgRaw&r=0", rating: 4.5 }, "The Boys": { title: "The Boys", description: "A group of vigilantes sets out to take down corrupt superheroes who abuse their powers, exposing the darker side of superhero culture.", type: "Action, Comedy", poster: "https://flxt.tmsimg.com/assets/p18637010_b_v13_ae.jpg", rating: 4.5 }, "Ultimate Spider-Man": { title: "Ultimate Spider-Man", description: "A young Peter Parker balances his life as a high school student and his role as Spider-Man while facing various villains.", type: "Action, Comedy", poster: "https://th.bing.com/th/id/OIP.oIyuWTkAvO06DgJ4v8O9mgHaKO?w=1000&h=1381&rs=1&pid=ImgDetMain", rating: 4.3 }, "One punch Man": { title: "One Punch Man", description: "A superhero who can defeat any opponent with a single punch struggles with the boredom of being unbeatable.", type: "Action, Comedy, Superhero", poster: "https://th.bing.com/th/id/OIP.c1BIgCmiegVfvZN2v1SucAHaLH?rs=1&pid=ImgDetMain", rating: 4.6 }, "Spy X Family": { title: "Spy X Family", description: "A spy must build a family to complete his mission, not knowing that his new wife is an assassin and his adopted daughter is a telepath.", type: "Action, Comedy, Slice of Life", poster: "https://th.bing.com/th/id/OIP.DxLK-dFq2HDl_ZWU-qt-GQHaLH?rs=1&pid=ImgDetMain", rating: 4.7 }, "Life of saiki": { title: "Life of saiki", description: "A high school student with psychic abilities tries to live a normal life while dealing with the chaos caused by his powers.", type: "Comedy, Slice of Life", poster: "https://m.media-amazon.com/images/M/MV5BYmFiNTU2YWUtZjVjYy00MDJmLThlNzMtYTBhNzZmMmUyN2JlXkEyXkFqcGdeQXVyMTMzNDc0Nzky._V1_UY1200_CR85,0,630,1200_AL_.jpg", rating: 4.5 }, "Demon Slayer": { title: "Demon Slayer: Kimetsu no Yaiba", description: "After his family is slaughtered by demons and his younger sister turned into one, Tanjiro Kamado becomes a demon slayer to avenge his family and cure his sister.", type: "Anime, Action, Adventure, Fantasy", poster: "https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781974720972/demon-slayer-kimetsu-no-yaiba-vol-20-9781974720972_hr.jpg", rating: 4.9 }, }; window.seriesDetails = Object.assign({}, seriesDetails, window.seriesDetails || {}); const details = window.seriesDetails[seriesName] || Object.values(window.seriesDetails).find(item => (item?.title || '').toLowerCase() === (seriesName || '').toLowerCase()); if (details) { document.getElementById("series-title").textContent = details.title; document.getElementById("series-description").textContent = details.description; document.getElementById("series-type").textContent = details.type; document.getElementById("series-poster").src = details.poster; document.getElementById("rating-value").textContent = details.rating; document.getElementById("series-details").style.display = "flex"; } else { console.error("Series not found:", seriesName); } }
+        document.getElementById("close-series-details").addEventListener("click", function () { document.getElementById("series-details").style.display = "none"; }); document.querySelectorAll('.series-user-rating .star').forEach(star => { star.addEventListener('click', function () { const value = this.getAttribute('data-value'); setRating(value); }); }); function setRating(rating) {
+            document.querySelectorAll('.series-user-rating .star').forEach(star => { star.classList.remove('selected'); }); for (let i = 1; i <= rating; i++) { document.querySelector(`.series-user-rating .star[data-value="${i}"]`).classList.add('selected'); }
+            document.getElementById('series-rating-feedback').textContent = `You rated this series ${rating}stars!`;
+        }</script>
+        <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (typeof requireAuth === 'function') {
+            await requireAuth();
+        }
+        if (typeof updateAuthUI === 'function') {
+            updateAuthUI();
+        }
+    });
+</script>
+<!-- Make sure supabase-js is loaded once (usually in <head>) and auth.js is included before this -->
+<script>
+  // Attach a +Watchlist button to every .movie-item on the page
+  (function attachWatchlistButtons() {
+    const items = document.querySelectorAll('.movie-item');
+    items.forEach(item => {
+      if (item.querySelector('.watchlist-btn')) return; // don't duplicate
+
+    const btn = document.createElement('button');
+    btn.className = 'watchlist-btn';
+    btn.textContent = '+ Watchlist';
+    // keep title on the button for UI sync
+    const btnTitle = item.querySelector('.movie-item-title')?.textContent?.trim() || item.querySelector('h3')?.textContent?.trim() || item.getAttribute('data-title') || 'Unknown';
+    btn.dataset.title = btnTitle;
+
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+
+        // Try to read title from either <span.movie-item-title>, <h3>, or data-title
+        const title =
+          item.querySelector('.movie-item-title')?.textContent?.trim() ||
+          item.querySelector('h3')?.textContent?.trim() ||
+          item.getAttribute('data-title') ||
+          'Unknown';
+
+        // Poster from <img> src or data-poster
+        const poster =
+          item.querySelector('img')?.src ||
+          item.getAttribute('data-poster') ||
+          null;
+
+                // store title on the button so shared API can update UI
+                btn.dataset.title = title;
+                await addToWatchlist(title, poster);
+      });
+
+      // Put button inside the info area if it exists, else at the end of the item
+      (item.querySelector('.movie-item-info') || item).appendChild(btn);
+    });
+  })();
+
+  // Inserts a row into Supabase watchlist for the current user
+    // Forwarding shim: prefer the unified watchlist API (watchlist-api.js)
+    async function addToWatchlist(movieTitle, posterUrl) {
+        movieTitle = (movieTitle || document.querySelector('#series-title')?.textContent || '').toString().trim();
+        posterUrl = posterUrl || document.querySelector('#series-poster')?.src || null;
+        if (typeof window.addToWatchlist === 'function' && window.addToWatchlist !== addToWatchlist) {
+            return window.addToWatchlist(movieTitle, posterUrl);
+        }
+        (window.showToast || ((m,t)=>alert(m)))('Watchlist service not available', 'error');
+        return;
+    }
+</script>
+
+<script>
+const SERIES_CACHE_KEY = 'series:rows';
+const SERIES_CACHE_TTL_MS = 1000 * 60 * 8;
+const SERIES_CACHE_SIGNAL_KEY = (window.cinemaversePerf && window.cinemaversePerf.cacheSignalKey) || 'cinemaverse_cache_signal';
+
+function normalizeSeriesCategory(rawCategory) {
+    const value = (rawCategory || '').toString().trim().toLowerCase();
+    if (value === 'popular') return 'Popular';
+    if (value === 'seinen') return 'Seinen';
+    if (value === 'latest' || value === 'new') return 'Latest';
+    if (value === 'toprated' || value === 'top-rated' || value === 'top rated') return 'TopRated';
+    if (value === 'comedy') return 'Comedy';
+    if (value === 'action') return 'Action';
+    if (value === 'sports') return 'Sports';
+    return rawCategory;
+}
+
+function buildSeriesSignature(rows) {
+    return JSON.stringify((rows || []).map((item) => ({
+        id: item.id || null,
+        title: (item.title || '').toString().trim().toLowerCase(),
+        poster_url: (item.poster_url || '').toString().trim(),
+        category: normalizeSeriesCategory(item.category),
+        created_at: item.created_at || null
+    })));
+}
+
+function renderSeriesRows(rows) {
+    document.querySelectorAll('.movies-list .movie-item.dynamic-card').forEach((node) => node.remove());
+    const appendMap = new Map();
+
+    (rows || []).forEach(series => {
+        const title = (series.title || '').trim();
+        const rawPoster = series.poster_url || '';
+        const poster = window.cinemaversePerf
+            ? window.cinemaversePerf.optimizeImageUrl(rawPoster, 500)
+            : rawPoster;
+        if (!title) return;
+
+        const category = normalizeSeriesCategory(series.category);
+        const container = document.querySelector(`.movies-list[data-category="${category}"]`);
+        if (!container) return;
+
+        const alreadyExists = Array.from(container.querySelectorAll('h3'))
+            .some(el => el.textContent.trim().toLowerCase() === title.toLowerCase());
+        if (alreadyExists) return;
+
+        window.seriesDetails = window.seriesDetails || {};
+        if (!window.seriesDetails[title]) {
+            window.seriesDetails[title] = {
+                title,
+                description: series.description || 'No description available.',
+                type: series.genre || 'Unknown',
+                poster,
+                rating: Number(series.rating) || 0
+            };
+        }
+
+        const card = document.createElement('div');
+        card.className = 'movie-item dynamic-card';
+
+        const img = document.createElement('img');
+        img.src = poster || 'https://via.placeholder.com/300x450?text=No+Image';
+        img.alt = title;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+
+        const heading = document.createElement('h3');
+        heading.textContent = title;
+
+        const watchBtn = document.createElement('button');
+        watchBtn.className = 'watchlist-btn';
+        watchBtn.textContent = '+ Watchlist';
+        watchBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            if (typeof addToWatchlist === 'function') {
+                await addToWatchlist(title, poster || null);
+            }
+        });
+
+        card.appendChild(img);
+        card.appendChild(heading);
+        card.appendChild(watchBtn);
+        card.addEventListener('click', () => showSeriesDetails(title));
+
+        if (!appendMap.has(container)) appendMap.set(container, []);
+        appendMap.get(container).push(card);
+    });
+
+    appendMap.forEach((cards, list) => {
+        if (window.cinemaversePerf) {
+            window.cinemaversePerf.appendWithFragment(list, cards, 'prepend');
+        } else {
+            cards.forEach((card) => list.prepend(card));
+        }
+    });
+
+    window.cinemaversePerf?.applyImageOptimizations();
+}
+
+async function loadSeriesRowsSWR() {
+    const lists = Array.from(document.querySelectorAll('.movies-list'));
+    const skeletons = new Map();
+    const cachedRows = window.cinemaversePerf?.getCache
+        ? window.cinemaversePerf.getCache(SERIES_CACHE_KEY, SERIES_CACHE_TTL_MS)
+        : null;
+
+    if (window.cinemaversePerf && !cachedRows) {
+        lists.forEach((list) => {
+            skeletons.set(list, window.cinemaversePerf.showSkeleton(list, 3));
+        });
+    }
+
+    if (cachedRows && Array.isArray(cachedRows)) {
+        renderSeriesRows(cachedRows);
+    }
+
+    const client = typeof ensureSupabaseClient === 'function'
+        ? await ensureSupabaseClient()
+        : supabase;
+
+    const seriesResult = window.cinemaversePerf
+        ? await window.cinemaversePerf.getCachedSupabaseRows({
+            cacheKey: SERIES_CACHE_KEY,
+            ttlMs: SERIES_CACHE_TTL_MS,
+            forceRefresh: true,
+            query: () => client
+                .from('series')
+                .select('*')
+                .order('created_at', { ascending: false })
+        })
+        : await client
+            .from('series')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+    const data = seriesResult?.data || [];
+    const error = seriesResult?.error || null;
+
+    skeletons.forEach((nodes) => window.cinemaversePerf?.clearSkeleton(nodes));
+
+    if (error) {
+        console.error(error.message || error);
+        return;
+    }
+
+    if (!cachedRows || buildSeriesSignature(cachedRows) !== buildSeriesSignature(data)) {
+        renderSeriesRows(data);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await loadSeriesRowsSWR();
+    } catch (e) {
+        console.error('Load series failed:', e);
+    }
+
+    window.addEventListener('storage', (event) => {
+        if (event.key !== SERIES_CACHE_SIGNAL_KEY || !event.newValue) return;
+        try {
+            const payload = JSON.parse(event.newValue);
+            const keys = Array.isArray(payload?.keys) ? payload.keys : [];
+            if (keys.includes(SERIES_CACHE_KEY)) {
+                loadSeriesRowsSWR();
+            }
+        } catch (_) {}
+    });
+});
+</script>
+
+<script>
+(() => {
+    const stars = Array.from(document.querySelectorAll('.series-user-rating .star'));
+    const ratingValueEl = document.getElementById('rating-value');
+    const feedbackEl = document.getElementById('series-rating-feedback');
+    const titleEl = document.getElementById('series-title');
+
+    if (!stars.length || !ratingValueEl || !feedbackEl || !titleEl) return;
+
+    const storagePrefix = 'cinemaverse_series_rating::';
+
+    function currentTitle() {
+        return (titleEl.textContent || '').trim();
+    }
+
+    function storageKey() {
+        const title = currentTitle();
+        return title ? `${storagePrefix}${title.toLowerCase()}` : null;
+    }
+
+    function paintStars(rating) {
+        stars.forEach((star) => {
+            const value = Number(star.getAttribute('data-value')) || 0;
+            star.classList.toggle('selected', value <= rating);
+        });
+    }
+
+    function showFeedback(rating) {
+        if (rating > 0) {
+            feedbackEl.textContent = `You rated this series ${rating} star${rating > 1 ? 's' : ''}!`;
+            ratingValueEl.textContent = String(rating);
+        } else {
+            feedbackEl.textContent = 'Rate this series!';
+        }
+    }
+
+    function syncFromStorage() {
+        const key = storageKey();
+        const saved = key ? Number(localStorage.getItem(key) || 0) : 0;
+        const rating = Number.isFinite(saved) ? Math.max(0, Math.min(5, saved)) : 0;
+        paintStars(rating);
+        showFeedback(rating);
+    }
+
+    function saveRating(rating) {
+        const key = storageKey();
+        if (key) localStorage.setItem(key, String(rating));
+        paintStars(rating);
+        showFeedback(rating);
+    }
+
+    stars.forEach((star) => {
+        if (star.dataset.ratingBound === '1') return;
+        star.dataset.ratingBound = '1';
+        star.addEventListener('click', () => {
+            const rating = Number(star.getAttribute('data-value')) || 0;
+            saveRating(rating);
+        });
+    });
+
+    const originalShowSeriesDetails = window.showSeriesDetails;
+    if (typeof originalShowSeriesDetails === 'function') {
+        window.showSeriesDetails = function (...args) {
+            const result = originalShowSeriesDetails.apply(this, args);
+            setTimeout(syncFromStorage, 0);
+            return result;
+        };
+    }
+
+    syncFromStorage();
+})();
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us - Cinemaverse</title>
+  <style id="auth-preload-style">body{display:none!important;}</style>
+  <script>
+    window.__CINEMAVERSE_PROTECT_PAGE__ = true;
+    window.__CINEMAVERSE_UNHIDE_BODY__ = function () {
+      const preloadStyle = document.getElementById('auth-preload-style');
+      if (preloadStyle) preloadStyle.remove();
+      if (document.body) document.body.style.display = '';
+    };
+  </script>
+  <link rel="stylesheet" href="shared-navbar.css" />
+  <script src="shared-navbar.js" defer></script>
+  <script src="card-search.js" defer></script>
+   <script src="performance-utils.js" defer></script>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      margin: 0;
+    }
+
+    .about-page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      line-height: 1.65;
+    }
+
+    .about-page h1 {
+      color: #ff4646;
+      margin-bottom: 12px;
+      font-size: 2.2rem;
+    }
+
+    .about-page h2 {
+      color: #ff4646;
+      margin-top: 28px;
+      margin-bottom: 10px;
+      font-size: 1.35rem;
+    }
+
+    .about-page p {
+      color: #f2f2f2;
+      margin: 0 0 12px;
+    }
+
+    .developer-credit {
+      margin: 18px 0 24px;
+      padding: 14px 16px;
+      border-left: 4px solid #ff4646;
+      border-radius: 8px;
+      background: rgba(255, 70, 70, 0.12);
+      color: #fff;
+      font-size: 1.02rem;
+      letter-spacing: 0.2px;
+    }
+
+    .developer-credit strong {
+      color: #ff6b6b;
+      font-size: 1.08rem;
+    }
+
+    .developer-credit a {
+      color: #ff6b6b;
+      text-decoration: none;
+    }
+
+    .developer-credit a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      background-color: black;
+      color: red;
+      text-align: center;
+      padding: 20px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="auth.js" defer></script>
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-wrapper">
+      <div class="logo-wrapper">
+        <h1 class="logo">Cinemaverse</h1>
+      </div>
+      <div class="menu-container">
+        <ul class="menu-list">
+          <li class="menu-list-item"><a href="index.html">Home</a></li>
+          <li class="menu-list-item"><a href="movies.html">Movies</a></li>
+          <li class="menu-list-item"><a href="series.html">Series</a></li>
+          <li class="menu-list-item"><a href="watchlist.html">Watchlist</a></li>
+          <li class="menu-list-item"><a href="gallery.html">Gallery</a></li>
+          <li class="menu-list-item"><a href="contact.html">Contact Us</a></li>
+          <li class="menu-list-item active"><a href="about.html">About Us</a></li>
+        </ul>
+      </div>
+      <div class="profile-container">
+        <a href="login.html" class="auth-button login-button">Login</a>
+        <a href="javascript:void(0)" onclick="logout()" class="auth-button logout-button" style="display:none;">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="about-page">
+    <h1>About Cinemaverse</h1>
+    <p>Cinemaverse is your entertainment hub for discovering movies, series, trailers, and personalized watchlists in one place.</p>
+    <div class="developer-credit">
+      Developed and maintained by <strong><a href="mailto:akhilb490@gmail.com">N.Akhil</a></strong>
+    </div>
+
+    <h2>Our Mission</h2>
+    <p>We aim to make exploring great stories simple, fast, and visually engaging for every film lover.</p>
+
+    <h2>What You Can Do</h2>
+    <p>Browse trending content, view details, and manage your own watchlist with secure account access.</p>
+
+    <h2>Community First</h2>
+    <p>We are continuously improving Cinemaverse to deliver a consistent and enjoyable experience across all pages.</p>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2023 Cinemaverse. All rights reserved. All content is the property of their respective owners. Unauthorized use is prohibited.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof window.checkAuth === 'function') {
+        const result = await checkAuth();
+        if (result && typeof window.updateAuthUI === 'function') {
+          updateAuthUI();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
